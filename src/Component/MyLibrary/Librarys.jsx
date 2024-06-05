@@ -69,9 +69,9 @@ function Librarys({ name, imageSource, color, backgroundColor, logo, pres }) {
                 >
                     {name}
                 </Text>
-                {/* <View style={{ marginTop: 10 }}>
+                <View style={{ marginTop: 10 }}>
                     {logo}
-                </View> */}
+                </View>
             </Animated.View>
         </TouchableOpacity>
     );

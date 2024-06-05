@@ -19,13 +19,7 @@ function MyLibrary() {
                 contentContainerStyle={styles.libraryContainer}
                 showsHorizontalScrollIndicator={false}
             >
-                <Librarys
-                    pres={() => navigation.navigate("Kitaplarım")}
-                    name="Kitaplarım"
-                    imageSource={require('../../../assets/booksicon22.png')}
-                    backgroundColor={"#f0f8ff"}
-                    logo={<FontAwesome5 name="book-open" size={24} color="black" />}
-                />
+
                 <Librarys
                     pres={() => navigation.navigate("Okuma Listem")}
                     name="Okuma Listem"
@@ -33,6 +27,14 @@ function MyLibrary() {
                     backgroundColor={"#e6e6fa"}
                     logo={<Feather name="list" size={27} color="black" />}
                 />
+                <Librarys
+                    pres={() => navigation.navigate("Kitaplarım")}
+                    name="Kitaplarım"
+                    imageSource={require('../../../assets/booksicon22.png')}
+                    backgroundColor={"#f0f8ff"}
+                    logo={<FontAwesome5 name="book-open" size={24} color="black" />}
+                />
+
                 <Librarys
                     pres={() => navigation.navigate("Beğendiğim Yazarlar")}
                     name="Beğendiğim Yazarlar"

@@ -108,7 +108,7 @@ function Home() {
                         alignItems: 'center',
                         height: height * 0.06,
                         width: width * 0.9,
-                        backgroundColor: "#e2b951",
+                        backgroundColor: "#DF9C6C",
                         borderRadius: 14,
                         paddingHorizontal: 14,
                         marginBottom: 23,
