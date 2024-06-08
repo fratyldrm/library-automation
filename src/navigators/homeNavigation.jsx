@@ -27,6 +27,7 @@ import AddBook2 from '../Screens/AddBook2'
 import AddAuthor from '../Screens/AddAuthor'
 import BookList from '../Screens/BookList'
 import PdfViewer from '../Screens/PdfViewer'
+import BestBooks from '../Component/MyLibrary/myLiblary/bestBook'
 
 const Stack = createStackNavigator()
 function homeNavigation() {
@@ -313,6 +314,21 @@ function homeNavigation() {
             <Stack.Screen
                 name="PdfViewer"
                 component={PdfViewer}
+                options={({ navigation }) => ({
+                    headerTransparent: true,
+                    headerTintColor: 'white',
+                    headerLeft: () => (
+                        <TouchableOpacity
+                            style={{ marginLeft: 12 }}
+                            onPress={() => navigation.navigate("Kütüphanem")}>
+                            <AntDesign name="arrowleft" size={24} color="white" />
+                        </TouchableOpacity>
+                    ),
+                })}
+            />
+            <Stack.Screen
+                name="BestBooks"
+                component={BestBooks}
                 options={({ navigation }) => ({
                     headerTransparent: true,
                     headerTintColor: 'white',

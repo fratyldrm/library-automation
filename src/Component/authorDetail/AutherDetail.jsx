@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, Image, Dimensions, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, View, Image, Dimensions, ScrollView, TouchableOpacity, StyleSheet, } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import SimilarBooks from "../bookkDetail/similarBooks";
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import Slider from '@react-native-community/slider';
 const { width, height } = Dimensions.get("window");
 
 const AutherDetail = ({ route }) => {
     const { authorId } = route.params;
     const [author, setAuthor] = useState(null);
     const [liked, setLiked] = useState(false);
+    const [rating, setRating] = useState(0);
 
     useEffect(() => {
         console.log("Author ID from route params: ", authorId); // Log the authorId
@@ -61,6 +62,26 @@ const AutherDetail = ({ route }) => {
         }
     };
 
+    const handleRatingSubmit = async (newRating) => {
+        try {
+            const authorRef = doc(db, "authors", authorId);
+            const authorDoc = await getDoc(authorRef);
+            if (authorDoc.exists()) {
+                const authorData = authorDoc.data();
+                const currentRating = authorData.rating || { sum: 0, count: 0 };
+                const updatedRating = {
+                    sum: currentRating.sum + newRating,
+                    count: currentRating.count + 1,
+                };
+                await updateDoc(authorRef, { rating: updatedRating });
+                setRating(newRating);
+                alert('Puanınız kaydedildi!');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     if (!author) {
         return (
             <View style={styles.loading}>
@@ -103,6 +124,22 @@ const AutherDetail = ({ route }) => {
                     <AntDesign name={liked ? "heart" : "hearto"} size={24} color="red" />
                     <Text>Beğen</Text>
                 </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 20, alignItems: 'center' }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginTop: 12 }}>Puan Ver</Text>
+                <Slider
+                    style={{ width: 200, height: 40, }}
+                    minimumValue={1}
+                    maximumValue={5}
+                    step={1}
+                    onValueChange={(value) => setRating(value)}
+                    value={rating}
+                    minimumTrackTintColor="#1EB1FC"
+                    maximumTrackTintColor="#8ED1FC"
+                    onSlidingComplete={handleRatingSubmit}
+                />
+                <Text style={{ fontSize: 16 }}>Seçilen Puan: {rating}</Text>
             </View>
 
             <View style={{ marginTop: 12, paddingHorizontal: 30, backgroundColor: "white" }}>

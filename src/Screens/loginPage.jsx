@@ -53,7 +53,7 @@ function LoginPage() {
                         onPress={() => navigation.navigate("Şifremi Unuttum")}
                         style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginBottom: 5 }}
                     >
-                        <AntDesign name="questioncircleo" size={14} color="black" />
+                        <AntDesign name="questioncircleo" size={14} color="white" />
                         <Text style={{ color: 'white', paddingLeft: 8 }}>
                             Şifremi Unuttum
                         </Text>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, Image, Dimensions, TouchableOpacity, ScrollView, ActivityIndicator, FlatList, Button } from 'react-native';
+import { Text, View, Image, Dimensions, ScrollView, ActivityIndicator, FlatList, Button } from 'react-native';
 import { SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import BannerCarousel from './BannerCarousel';
@@ -17,6 +17,7 @@ function Home() {
     const [authors, setAuthors] = useState([]);
     const [bookCount, setBookCount] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [topRatedBooks, setTopRatedBooks] = useState([]);
 
     useEffect(() => {
         const fetchBooks = async () => {
@@ -25,11 +26,15 @@ function Home() {
             setBookCount(bookData.length);
             const pages = bookData.reduce((total, book) => total + (book.NumberPages || 0), 0);
             setTotalPages(pages);
+
+            const topRated = await fetchTopRatedBooks();
+            setTopRatedBooks(topRated);
         };
 
         const fetchAuthors = async () => {
             const authorData = await fetchAuthorData();
-            setAuthors(authorData);
+            const sortedAuthors = sortAuthorsByRating(authorData);
+            setAuthors(sortedAuthors);
             setLoading(false);
         };
 
@@ -39,7 +44,6 @@ function Home() {
 
     const fetchBookData = async () => {
         const allData = [];
-
         try {
             const querySnapshot = await getDocs(collection(db, "books"));
             querySnapshot.forEach((doc) => {
@@ -52,9 +56,26 @@ function Home() {
         }
     };
 
+    const fetchTopRatedBooks = async () => {
+        const topRatedData = [];
+        try {
+            const querySnapshot = await getDocs(collection(db, 'books'));
+            const booksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const ratedBooks = booksData.filter(book => book.rating && book.rating.count > 0);
+            const sortedBooks = ratedBooks.sort((a, b) => {
+                const aRating = a.rating.sum / a.rating.count;
+                const bRating = b.rating.sum / b.rating.count;
+                return bRating - aRating;
+            });
+            return sortedBooks.slice(0, 10);
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
+
     const fetchAuthorData = async () => {
         const allAuthors = [];
-
         try {
             const querySnapshot = await getDocs(collection(db, "authors"));
             querySnapshot.forEach((doc) => {
@@ -65,6 +86,14 @@ function Home() {
             console.log(error);
             return [];
         }
+    };
+
+    const sortAuthorsByRating = (authors) => {
+        return authors.sort((a, b) => {
+            const aRating = a.rating ? a.rating.sum / a.rating.count : 0;
+            const bRating = b.rating ? b.rating.sum / b.rating.count : 0;
+            return bRating - aRating;
+        });
     };
 
     if (loading) {
@@ -155,7 +184,7 @@ function Home() {
                         <Text style={{ fontSize: 19, fontWeight: "bold", marginBottom: 30 }}>En Sevilen Kitaplar</Text>
                         <FlatList
                             horizontal
-                            data={books}
+                            data={topRatedBooks}
                             keyExtractor={(item) => item.id.toString()}
                             renderItem={({ item }) => (
                                 <View style={{ marginRight: 20, marginLeft: 10, marginTop: 50, }}>
@@ -181,6 +210,7 @@ function Home() {
                             showsHorizontalScrollIndicator={false}
                         />
                     </View>
+
                 </View>
             </View>
 

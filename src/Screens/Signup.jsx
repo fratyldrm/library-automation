@@ -44,19 +44,19 @@ function Signup() {
                     </Text>
                 </View>
                 <View style={{ flex: 1, alignItems: 'center', marginHorizontal: 40, justifyContent: 'center', marginTop: 132 }}>
-                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', marginBottom: 14 }}>
+                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', height: 50, marginBottom: 14 }}>
                         <TextInput onChangeText={setName} value={name} placeholder='Adınız' placeholderTextColor={'gray'} />
                     </View>
-                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', marginBottom: 14 }}>
+                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', height: 50, marginBottom: 14 }}>
                         <TextInput onChangeText={setLastName} value={lastName} placeholder='Soyadınız' placeholderTextColor={'gray'} />
                     </View>
-                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', marginBottom: 14 }}>
+                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', height: 50, marginBottom: 14 }}>
                         <TextInput onChangeText={setEmail} value={email} placeholder='E-Posta Adresiniz' placeholderTextColor={'gray'} />
                     </View>
-                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', marginBottom: 14 }}>
+                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', height: 50, marginBottom: 14 }}>
                         <TextInput onChangeText={setPassword} value={password} placeholder='Şifre' placeholderTextColor={'gray'} secureTextEntry />
                     </View>
-                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', marginBottom: 14 }}>
+                    <View style={{ backgroundColor: "white", padding: 15, borderRadius: 12, width: '100%', height: 50, marginBottom: 14 }}>
                         <TextInput onChangeText={setConfirmPassword} value={confirmPassword} placeholder='Şifre Tekrar' placeholderTextColor={'gray'} secureTextEntry />
                     </View>
                     <TouchableOpacity

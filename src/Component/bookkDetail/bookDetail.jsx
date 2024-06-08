@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, Image, Dimensions, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text, View, Image, Dimensions, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons, AntDesign, Feather } from '@expo/vector-icons';
 import SimilarBooks from "./similarBooks";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, getDoc, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Slider from '@react-native-community/slider';
 
 const { width, height } = Dimensions.get("window");
 
@@ -19,6 +20,24 @@ const fetchBookData = async () => {
     }
 };
 
+const updateBookRating = async (bookId, newRating) => {
+    try {
+        const bookRef = doc(db, "books", bookId);
+        const bookDoc = await getDoc(bookRef);
+        if (bookDoc.exists()) {
+            const bookData = bookDoc.data();
+            const currentRating = bookData.rating || { sum: 0, count: 0 };
+            const updatedRating = {
+                sum: currentRating.sum + newRating,
+                count: currentRating.count + 1,
+            };
+            await updateDoc(bookRef, { rating: updatedRating });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 const BookDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
@@ -29,6 +48,9 @@ const BookDetail = () => {
     const [added, setAdded] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
     const [similarBooks, setSimilarBooks] = useState([]);
+    const [rating, setRating] = useState(0);
+    const [comment, setComment] = useState('');
+    const [comments, setComments] = useState([]);
 
     useEffect(() => {
         const fetchBook = async () => {
@@ -67,6 +89,16 @@ const BookDetail = () => {
         };
 
         checkBookStatus();
+    }, [bookId]);
+
+    useEffect(() => {
+        const q = query(collection(db, `books/${bookId}/comments`), orderBy('createdAt', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const commentsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setComments(commentsData);
+        });
+
+        return () => unsubscribe();
     }, [bookId]);
 
     const handleLikePress = async () => {
@@ -113,6 +145,33 @@ const BookDetail = () => {
                 await AsyncStorage.setItem('downloadedBooks', JSON.stringify(downloadedBooks));
                 setDownloaded(true);
             }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleRatingSubmit = async (newRating) => {
+        try {
+            await updateBookRating(bookId, newRating);
+            alert('Puanınız kaydedildi!');
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleCommentSubmit = async () => {
+        if (comment.trim().length === 0) {
+            alert('Yorum boş olamaz');
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, `books/${bookId}/comments`), {
+                text: comment,
+                createdAt: new Date(),
+            });
+            setComment('');
+            alert('Yorumunuz kaydedildi!');
         } catch (error) {
             console.log(error);
         }
@@ -167,12 +226,7 @@ const BookDetail = () => {
                     <Text style={{ color: downloaded ? "red" : "black" }}>İndir</Text>
                 </TouchableOpacity>
             </View>
-            <View style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: "white"
-            }}>
+            <View style={{ marginTop: 20, alignItems: 'center' }}>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('PdfViewer', { pdfUrl: book.pdfUrl })}
                     style={{
@@ -187,6 +241,32 @@ const BookDetail = () => {
                     }}>
                     <Text style={{ textAlign: 'center', color: "white", fontSize: 17, fontWeight: "500" }}>Okumaya Başla</Text>
                 </TouchableOpacity>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginTop: 12 }}>Puan Ver</Text>
+                <Slider
+                    style={{ width: 200, height: 40, }}
+                    minimumValue={1}
+                    maximumValue={5}
+                    step={1}
+                    onValueChange={(value) => setRating(value)}
+                    value={rating}
+                    minimumTrackTintColor="#1EB1FC"
+                    maximumTrackTintColor="#8ED1FC"
+                    onSlidingComplete={handleRatingSubmit}  // Puanlama işlemini kaydeden handler
+                />
+                <Text style={{ fontSize: 16 }}>Seçilen Puan: {rating}</Text>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('BestBooks')}
+                    style={{ backgroundColor: '#465de2', padding: 10, borderRadius: 10, marginTop: 13 }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>En Çok Puan Alan Kitapları Gör</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: "white"
+            }}>
+
             </View>
 
             <View style={{ marginTop: 12, paddingHorizontal: 30, backgroundColor: "white" }}>
@@ -220,6 +300,40 @@ const BookDetail = () => {
                         </View>
                     ))}
                 </ScrollView>
+            </View>
+
+            <View style={{ paddingHorizontal: 30, marginTop: 20 }}>
+                <Text style={{ fontSize: 19, fontWeight: 'bold', marginBottom: 10 }}>Yorum Yap</Text>
+                <TextInput
+                    value={comment}
+                    onChangeText={setComment}
+                    placeholder="Yorumunuzu buraya yazın"
+                    style={{
+                        height: 100,
+                        borderColor: 'gray',
+                        borderWidth: 1,
+                        paddingHorizontal: 10,
+                        paddingVertical: 5,
+                        borderRadius: 5,
+                        marginBottom: 10,
+                    }}
+                    multiline
+                />
+                <TouchableOpacity
+                    onPress={handleCommentSubmit}
+                    style={{ backgroundColor: '#465de2', padding: 10, alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold', }}>Yorumu Gönder</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={{ paddingHorizontal: 30, marginTop: 20 }}>
+                <Text style={{ fontSize: 19, fontWeight: 'bold', marginBottom: 10 }}>Yorumlar</Text>
+                {comments.map(comment => (
+                    <View key={comment.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ fontSize: 16, color: 'gray' }}>{comment.text}</Text>
+                        <Text style={{ fontSize: 12, color: 'gray' }}>{new Date(comment.createdAt.seconds * 1000).toLocaleDateString()}</Text>
+                    </View>
+                ))}
             </View>
         </ScrollView>
     );

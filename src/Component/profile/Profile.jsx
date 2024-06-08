@@ -49,7 +49,6 @@ function profile() {
             <View style={{
                 width: '100%',
                 height: '60%',
-                backgroundColor: '#F4F4F4',
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
             }}>
