@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, FlatList, Image } from 'react-native';
 import { getDocs, collection } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import Slider from '@react-native-community/slider';
-import { Slider } from 'react-native';
 const bestAuther = () => {
     const [authors, setAuthors] = useState([]);
 
@@ -46,7 +45,7 @@ const bestAuther = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>En İyi Yazarlar</Text>
+            <Text style={styles.title}>En Çok Puan Alan Yazarlar</Text>
             <FlatList
                 data={authors}
                 renderItem={renderItem}
@@ -66,10 +65,12 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
+        marginTop: 21
     },
     authorContainer: {
         flexDirection: 'row',
         marginBottom: 20,
+        marginTop: 10
     },
     authorImage: {
         width: 60,

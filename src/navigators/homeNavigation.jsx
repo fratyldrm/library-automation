@@ -28,6 +28,7 @@ import AddAuthor from '../Screens/AddAuthor'
 import BookList from '../Screens/BookList'
 import PdfViewer from '../Screens/PdfViewer'
 import BestBooks from '../Component/MyLibrary/myLiblary/bestBook'
+import bestAuther from '../Component/authorDetail/bestAuther'
 
 const Stack = createStackNavigator()
 function homeNavigation() {
@@ -329,6 +330,21 @@ function homeNavigation() {
             <Stack.Screen
                 name="BestBooks"
                 component={BestBooks}
+                options={({ navigation }) => ({
+                    headerTransparent: true,
+                    headerTintColor: 'white',
+                    headerLeft: () => (
+                        <TouchableOpacity
+                            style={{ marginLeft: 12 }}
+                            onPress={() => navigation.navigate("Kütüphanem")}>
+                            <AntDesign name="arrowleft" size={24} color="white" />
+                        </TouchableOpacity>
+                    ),
+                })}
+            />
+            <Stack.Screen
+                name="En Çok Puan Alan Yazar"
+                component={bestAuther}
                 options={({ navigation }) => ({
                     headerTransparent: true,
                     headerTintColor: 'white',

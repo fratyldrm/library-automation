@@ -3,7 +3,7 @@ import { Text, View, Image, Dimensions, ScrollView, TouchableOpacity, TextInput,
 import { MaterialCommunityIcons, AntDesign, Feather } from '@expo/vector-icons';
 import SimilarBooks from "./similarBooks";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { collection, getDocs, doc, updateDoc, getDoc, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, getDoc, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Slider from '@react-native-community/slider';
@@ -38,6 +38,25 @@ const updateBookRating = async (bookId, newRating) => {
     }
 };
 
+const deleteComment = async (bookId, commentId) => {
+    try {
+        await deleteDoc(doc(db, `books/${bookId}/comments`, commentId));
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+const updateComment = async (bookId, commentId, newCommentText) => {
+    try {
+        await updateDoc(doc(db, `books/${bookId}/comments`, commentId), {
+            text: newCommentText,
+            updatedAt: new Date(),
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 const BookDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
@@ -51,6 +70,7 @@ const BookDetail = () => {
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
     const [comments, setComments] = useState([]);
+    const [editingComment, setEditingComment] = useState(null);
 
     useEffect(() => {
         const fetchBook = async () => {
@@ -59,7 +79,6 @@ const BookDetail = () => {
                 const selectedBook = booksData.find(b => b.id === bookId);
                 setBook(selectedBook);
 
-                // Fetch similar books with the same type
                 const filteredBooks = booksData.filter(b => b.type === selectedBook.type && b.id !== bookId);
                 setSimilarBooks(filteredBooks);
 
@@ -166,12 +185,31 @@ const BookDetail = () => {
         }
 
         try {
-            await addDoc(collection(db, `books/${bookId}/comments`), {
-                text: comment,
-                createdAt: new Date(),
-            });
+            if (editingComment) {
+                await updateComment(bookId, editingComment.id, comment);
+                setEditingComment(null);
+            } else {
+                await addDoc(collection(db, `books/${bookId}/comments`), {
+                    text: comment,
+                    createdAt: new Date(),
+                });
+            }
             setComment('');
             alert('Yorumunuz kaydedildi!');
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleCommentEdit = (comment) => {
+        setComment(comment.text);
+        setEditingComment(comment);
+    };
+
+    const handleCommentDelete = async (commentId) => {
+        try {
+            await deleteComment(bookId, commentId);
+            alert('Yorum silindi!');
         } catch (error) {
             console.log(error);
         }
@@ -251,14 +289,10 @@ const BookDetail = () => {
                     value={rating}
                     minimumTrackTintColor="#1EB1FC"
                     maximumTrackTintColor="#8ED1FC"
-                    onSlidingComplete={handleRatingSubmit}  // Puanlama işlemini kaydeden handler
+                    onSlidingComplete={handleRatingSubmit}
                 />
                 <Text style={{ fontSize: 16 }}>Seçilen Puan: {rating}</Text>
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('BestBooks')}
-                    style={{ backgroundColor: '#465de2', padding: 10, borderRadius: 10, marginTop: 13 }}>
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>En Çok Puan Alan Kitapları Gör</Text>
-                </TouchableOpacity>
+
             </View>
             <View style={{
                 flex: 1,
@@ -301,8 +335,21 @@ const BookDetail = () => {
                     ))}
                 </ScrollView>
             </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: "97%", height: "2.4%", marginTop: 13, paddingHorizontal: 4, marginLeft: 7 }}>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('BestBooks')}
+                    style={{ backgroundColor: '#465de2', padding: 10, borderRadius: 10, flex: 1, marginRight: 5 }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>En Çok Puan Alan Kitaplar</Text>
+                </TouchableOpacity>
 
-            <View style={{ paddingHorizontal: 30, marginTop: 20 }}>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('TopRatedAuthors')}
+                    style={{ backgroundColor: '#465de2', padding: 10, borderRadius: 10, flex: 1, marginLeft: 5 }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>En Çok Puan Alan Yazarlar</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
                 <Text style={{ fontSize: 19, fontWeight: 'bold', marginBottom: 10 }}>Yorum Yap</Text>
                 <TextInput
                     value={comment}
@@ -322,7 +369,7 @@ const BookDetail = () => {
                 <TouchableOpacity
                     onPress={handleCommentSubmit}
                     style={{ backgroundColor: '#465de2', padding: 10, alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
-                    <Text style={{ color: 'white', fontWeight: 'bold', }}>Yorumu Gönder</Text>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{editingComment ? 'Yorumu Güncelle' : 'Yorumu Gönder'}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -332,6 +379,29 @@ const BookDetail = () => {
                     <View key={comment.id} style={{ marginBottom: 10 }}>
                         <Text style={{ fontSize: 16, color: 'gray' }}>{comment.text}</Text>
                         <Text style={{ fontSize: 12, color: 'gray' }}>{new Date(comment.createdAt.seconds * 1000).toLocaleDateString()}</Text>
+                        <View style={{ flexDirection: 'row', marginTop: 5 }}>
+                            <TouchableOpacity
+                                onPress={() => handleCommentEdit(comment)}
+                                style={{
+                                    backgroundColor: 'green',
+                                    paddingVertical: 5,
+                                    paddingHorizontal: 10,
+                                    borderRadius: 8,
+                                    marginRight: 10
+                                }}>
+                                <Text style={{ color: 'white' }}>Düzenle</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => handleCommentDelete(comment.id)}
+                                style={{
+                                    backgroundColor: 'red',
+                                    paddingVertical: 5,
+                                    paddingHorizontal: 10,
+                                    borderRadius: 8
+                                }}>
+                                <Text style={{ color: 'white' }}>Sil</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 ))}
             </View>

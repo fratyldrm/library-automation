@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, Image, Dimensions, ScrollView, ActivityIndicator, FlatList, Button } from 'react-native';
+import { Text, View, Image, Dimensions, ScrollView, ActivityIndicator, FlatList, Button, TouchableOpacity } from 'react-native';
 import { SimpleLineIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import BannerCarousel from './BannerCarousel';
@@ -7,6 +7,7 @@ import SimilarBooks from "../bookkDetail/similarBooks";
 import Author from '../authorDetail/Author';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
+import Slider from '@react-native-community/slider';
 
 const { width, height } = Dimensions.get("window");
 
@@ -18,6 +19,9 @@ function Home() {
     const [bookCount, setBookCount] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [topRatedBooks, setTopRatedBooks] = useState([]);
+    const [readingGoal, setReadingGoal] = useState(30); // default reading goal in minutes
+    const [timer, setTimer] = useState(0);
+    const [timerRunning, setTimerRunning] = useState(false);
 
     useEffect(() => {
         const fetchBooks = async () => {
@@ -41,6 +45,18 @@ function Home() {
         fetchBooks();
         fetchAuthors();
     }, []);
+
+    useEffect(() => {
+        let interval;
+        if (timerRunning) {
+            interval = setInterval(() => {
+                setTimer(prevTimer => prevTimer + 1);
+            }, 1000);
+        } else if (!timerRunning && timer !== 0) {
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [timerRunning]);
 
     const fetchBookData = async () => {
         const allData = [];
@@ -96,6 +112,15 @@ function Home() {
         });
     };
 
+    const startTimer = () => {
+        setTimerRunning(true);
+    };
+
+    const resetTimer = () => {
+        setTimer(0);
+        setTimerRunning(false);
+    };
+
     if (loading) {
         return <ActivityIndicator size="large" color="#0000ff" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} />;
     }
@@ -113,7 +138,7 @@ function Home() {
                 {/* Top View */}
                 <View style={{
                     width: '100%',
-                    height: '20%',
+                    height: '10%',
                     justifyContent: 'center',
                 }}>
                     <Image
@@ -196,23 +221,58 @@ function Home() {
                     </View>
 
                     {/* Yazarların Listesi */}
-                    <View style={{ marginBottom: 15, marginLeft: 17, marginTop: 2 }}>
+                    <View style={{ marginBottom: 2, marginLeft: 17, marginTop: 2 }}>
                         <Text style={{ fontSize: 19, fontWeight: 'bold' }}>Favori Yazarlar</Text>
                         <FlatList
                             horizontal
                             data={authors}
                             keyExtractor={(item) => item.id.toString()}
                             renderItem={({ item }) => (
-                                <View style={{ marginRight: 10, marginLeft: 10, marginTop: 90, marginBottom: 1244 }}>
+                                <View style={{ marginRight: 10, marginLeft: 10, marginTop: 90, marginBottom: 65 }}>
                                     <Author author={item} />
                                 </View>
                             )}
                             showsHorizontalScrollIndicator={false}
                         />
                     </View>
+                    <View style={{ padding: 20, backgroundColor: '#d4c5e8', borderRadius: 19, marginHorizontal: 12, marginBottom: 3333 }}>
+                        <Text style={{ fontSize: 19, fontWeight: 'bold' }}>Günlük Okuma Süresi Hedefi</Text>
+                        <Slider
+                            style={{ width: '100%', height: 40 }}
+                            minimumValue={10}
+                            maximumValue={240}
+                            step={10}
+                            onValueChange={(value) => setReadingGoal(value)}
+                            value={readingGoal}
+                            minimumTrackTintColor="#1EB1FC"
+                            maximumTrackTintColor="#8ED1FC"
+                        />
+                        <Text style={{ fontSize: 16 }}>Seçilen Süre: {readingGoal} dakika</Text>
+                        <TouchableOpacity
+                            onPress={startTimer}
+                            style={{
+                                backgroundColor: 'black',
+                                padding: 10,
+                                borderRadius: 5,
+                                marginTop: 10,
+                                borderRadius: 19,
+                            }}
+                        >
+                            <Text style={{ color: '#fff', textAlign: 'center', fontSize: 16, }}>Başla</Text>
+                        </TouchableOpacity>
+                        {timerRunning && (
+                            <View style={{ marginTop: 20 }}>
+                                <Text style={{ fontSize: 16 }}>Geçen Süre: {Math.floor(timer / 60)} dakika {timer % 60} saniye</Text>
+                                <Button title="Sıfırla" onPress={resetTimer} />
+                            </View>
+                        )}
+                    </View>
 
                 </View>
+
             </View>
+
+
 
             {/* Yazar ve Kitap Ekle Butonları */}
             <Button title="Yazar Ekle" onPress={() => navigation.navigate('yazar ekle item', { authorId: 'desired-author-id' })} />
