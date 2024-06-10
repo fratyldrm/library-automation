@@ -54,10 +54,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        width: 420, // Background image width
-        height: 900,
+        width: '100%', // Background image width
+        height: '100%', // Background image height
     },
     container: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
     },
     text: {
         color: 'white',
-        fontSize: 35, // Larger font size
+        fontSize: 30, // Larger font size
         fontWeight: '650', // Thicker text
         textAlign: 'center',
         textShadowOffset: { width: -1, height: 1 }, // Larger shadow offset
@@ -78,11 +79,13 @@ const styles = StyleSheet.create({
         fontFamily: 'Arial',
         fontStyle: "italic",
         letterSpacing: 6, // Wider letter spacing
-        marginTop: 335,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 260, // Remove margin top to align centrally
     },
     boldText: {
         fontWeight: 'bold',
-        fontSize: 65, // Bold text
+        fontSize: 40, // Bold text
     },
     image: {
         width: 900,

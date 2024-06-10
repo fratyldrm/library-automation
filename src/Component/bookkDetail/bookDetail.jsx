@@ -335,7 +335,7 @@ const BookDetail = () => {
                     ))}
                 </ScrollView>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: "97%", height: "2.4%", marginTop: 13, paddingHorizontal: 4, marginLeft: 7 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: "97%", height: "2.7%", marginTop: 13, paddingHorizontal: 4, marginLeft: 7, marginBottom: 12 }}>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('BestBooks')}
                     style={{ backgroundColor: '#465de2', padding: 10, borderRadius: 10, flex: 1, marginRight: 5 }}>
@@ -343,7 +343,7 @@ const BookDetail = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={() => navigation.navigate('TopRatedAuthors')}
+                    onPress={() => navigation.navigate("En Çok Puan Alan Yazar")}
                     style={{ backgroundColor: '#465de2', padding: 10, borderRadius: 10, flex: 1, marginLeft: 5 }}>
                     <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center' }}>En Çok Puan Alan Yazarlar</Text>
                 </TouchableOpacity>
@@ -369,11 +369,11 @@ const BookDetail = () => {
                 <TouchableOpacity
                     onPress={handleCommentSubmit}
                     style={{ backgroundColor: '#465de2', padding: 10, alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{editingComment ? 'Yorumu Güncelle' : 'Yorumu Gönder'}</Text>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{editingComment ? 'Yorumu Güncelle' : 'Yorum yap'}</Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={{ paddingHorizontal: 30, marginTop: 20 }}>
+            <View style={{ paddingHorizontal: 30, marginTop: 20, marginBottom: 12 }}>
                 <Text style={{ fontSize: 19, fontWeight: 'bold', marginBottom: 10 }}>Yorumlar</Text>
                 {comments.map(comment => (
                     <View key={comment.id} style={{ marginBottom: 10 }}>

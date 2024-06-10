@@ -235,7 +235,8 @@ function Home() {
                             showsHorizontalScrollIndicator={false}
                         />
                     </View>
-                    <View style={{ padding: 20, backgroundColor: '#d4c5e8', borderRadius: 19, marginHorizontal: 12, marginBottom: 3333 }}>
+
+                    <View style={{ padding: 20, backgroundColor: '#cec6c6', borderRadius: 19, marginHorizontal: 12, marginBottom: 3333 }}>
                         <Text style={{ fontSize: 19, fontWeight: 'bold' }}>Günlük Okuma Süresi Hedefi</Text>
                         <Slider
                             style={{ width: '100%', height: 40 }}

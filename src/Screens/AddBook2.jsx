@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, Image, StyleSheet, Alert, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, Button, Image, StyleSheet, Alert, Text, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebaseConfig';
 
@@ -19,6 +19,22 @@ const AddBook2 = ({ navigation }) => {
     const [image, setImage] = useState(null);
     const [pdf, setPdf] = useState(null);
     const [pdfName, setPdfName] = useState('');
+    const [books, setBooks] = useState([]);
+    const [selectedBookId, setSelectedBookId] = useState(null);
+
+    useEffect(() => {
+        fetchBooks();
+    }, []);
+
+    const fetchBooks = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'books'));
+            const booksList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            setBooks(booksList);
+        } catch (error) {
+            console.error('Kitaplar alınırken hata:', error);
+        }
+    };
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -89,61 +105,134 @@ const AddBook2 = ({ navigation }) => {
             const imageUrl = await uploadFile(image, `images/${new Date().toISOString()}.jpg`);
             const pdfUrl = await uploadFile(pdf.uri, `pdfs/${new Date().toISOString()}.pdf`);
 
-            await addDoc(collection(db, 'books'), {
-                title,
-                writer,
-                publisher,
-                type,
-                content,
-                ISBN: isbn,
-                NumberPages: parseInt(numberPages, 10),
-                releaseDate: parseInt(releaseDate, 10),
-                imageUrl,
-                pdfUrl,
-            });
+            if (selectedBookId) {
+                // Update book
+                await updateDoc(doc(db, 'books', selectedBookId), {
+                    title,
+                    writer,
+                    publisher,
+                    type,
+                    content,
+                    ISBN: isbn,
+                    NumberPages: parseInt(numberPages, 10),
+                    releaseDate: parseInt(releaseDate, 10),
+                    imageUrl,
+                    pdfUrl,
+                });
+                Alert.alert('Başarılı', 'Kitap başarıyla güncellendi!');
+            } else {
+                // Add new book
+                await addDoc(collection(db, 'books'), {
+                    title,
+                    writer,
+                    publisher,
+                    type,
+                    content,
+                    ISBN: isbn,
+                    NumberPages: parseInt(numberPages, 10),
+                    releaseDate: parseInt(releaseDate, 10),
+                    imageUrl,
+                    pdfUrl,
+                });
+                Alert.alert('Başarılı', 'Kitap başarıyla eklendi!');
+            }
 
-            Alert.alert('Başarılı', 'Kitap başarıyla eklendi!');
-            // Form alanlarını sıfırla
-            setTitle('');
-            setWriter('');
-            setPublisher('');
-            setType('');
-            setContent('');
-            setIsbn('');
-            setNumberPages('');
-            setReleaseDate('');
-            setImage(null);
-            setPdf(null);
-            setPdfName('');
-            navigation.navigate('PdfViewer', { pdfUrl });
+            // Clear form fields
+            clearForm();
+            fetchBooks();
         } catch (error) {
-            console.error('Belge eklenirken hata:', error);
-            Alert.alert('Hata', 'Kitap eklenemedi.');
+            console.error('Belge eklenirken veya güncellenirken hata:', error);
+            Alert.alert('Hata', 'Kitap eklenemedi veya güncellenemedi.');
         }
     };
 
+    const clearForm = () => {
+        setTitle('');
+        setWriter('');
+        setPublisher('');
+        setType('');
+        setContent('');
+        setIsbn('');
+        setNumberPages('');
+        setReleaseDate('');
+        setImage(null);
+        setPdf(null);
+        setPdfName('');
+        setSelectedBookId(null);
+    };
+
+    const handleBookPress = (book) => {
+        setSelectedBookId(book.id);
+        setTitle(book.title);
+        setWriter(book.writer);
+        setPublisher(book.publisher);
+        setType(book.type);
+        setContent(book.content);
+        setIsbn(book.ISBN);
+        setNumberPages(book.NumberPages.toString());
+        setReleaseDate(book.releaseDate.toString());
+        setImage(book.imageUrl);
+        setPdf({ uri: book.pdfUrl, name: book.pdfName });
+        setPdfName(book.pdfName);
+    };
+
+    const handleDelete = async () => {
+        if (selectedBookId) {
+            try {
+                await deleteDoc(doc(db, 'books', selectedBookId));
+                Alert.alert('Başarılı', 'Kitap başarıyla silindi!');
+                clearForm();
+                fetchBooks();
+            } catch (error) {
+                console.error('Kitap silinirken hata:', error);
+                Alert.alert('Hata', 'Kitap silinemedi.');
+            }
+        }
+    };
+
+    const renderBookItem = ({ item }) => (
+        <TouchableOpacity style={styles.bookItem} onPress={() => handleBookPress(item)}>
+            <Text style={styles.bookTitle}>{item.title}</Text>
+            <Text style={styles.bookWriter}>{item.writer}</Text>
+        </TouchableOpacity>
+    );
+
     return (
-        <View style={styles.container}>
-            <TextInput style={styles.input} placeholder="Kitap İsmi" value={title} onChangeText={setTitle} />
-            <TextInput style={styles.input} placeholder="Yazar" value={writer} onChangeText={setWriter} />
-            <TextInput style={styles.input} placeholder="Yayınevi" value={publisher} onChangeText={setPublisher} />
-            <TextInput style={styles.input} placeholder="Tür" value={type} onChangeText={setType} />
-            <TextInput style={styles.input} placeholder="İçerik" value={content} onChangeText={setContent} />
-            <TextInput style={styles.input} placeholder="ISBN" value={isbn} onChangeText={setIsbn} />
-            <TextInput style={styles.input} placeholder="Sayfa Sayısı" keyboardType="numeric" value={numberPages} onChangeText={setNumberPages} />
-            <TextInput style={styles.input} placeholder="Yayın Tarihi" keyboardType="numeric" value={releaseDate} onChangeText={setReleaseDate} />
-            <Button title="Resim Seç" onPress={pickImage} />
-            {image && <Image source={{ uri: image }} style={styles.image} />}
-            <Button title="PDF Seç" onPress={pickPdf} />
-            {pdf && <Text>PDF Seçildi: {pdfName}</Text>}
-            <Button title="Kitap Ekle" onPress={handleSubmit} />
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.container}>
+                <TextInput style={styles.input} placeholder="Kitap İsmi" value={title} onChangeText={setTitle} />
+                <TextInput style={styles.input} placeholder="Yazar" value={writer} onChangeText={setWriter} />
+                <TextInput style={styles.input} placeholder="Yayınevi" value={publisher} onChangeText={setPublisher} />
+                <TextInput style={styles.input} placeholder="Tür" value={type} onChangeText={setType} />
+                <TextInput style={styles.input} placeholder="İçerik" value={content} onChangeText={setContent} />
+                <TextInput style={styles.input} placeholder="ISBN" value={isbn} onChangeText={setIsbn} />
+                <TextInput style={styles.input} placeholder="Sayfa Sayısı" keyboardType="numeric" value={numberPages} onChangeText={setNumberPages} />
+                <TextInput style={styles.input} placeholder="Yayın Tarihi" keyboardType="numeric" value={releaseDate} onChangeText={setReleaseDate} />
+                <Button title="Resim Seç" onPress={pickImage} />
+                {image && <Image source={{ uri: image }} style={styles.image} />}
+                <Button title="PDF Seç" onPress={pickPdf} />
+                {pdf && <Text>PDF Seçildi: {pdfName}</Text>}
+                <Button title={selectedBookId ? "Kitap Güncelle" : "Kitap Ekle"} onPress={handleSubmit} />
+                {selectedBookId && <Button title="Kitap Sil" onPress={handleDelete} />}
+                <FlatList
+                    data={books}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderBookItem}
+                    contentContainerStyle={styles.bookList}
+                />
+            </View>
+        </ScrollView>
     );
 };
 
 export default AddBook2;
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        padding: 20,
+    },
     container: {
         flex: 1,
         justifyContent: 'center',
@@ -161,5 +250,24 @@ const styles = StyleSheet.create({
         height: 150,
         marginTop: 10,
         marginBottom: 10,
+    },
+    bookList: {
+        marginTop: 20,
+    },
+    bookItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: 'gray',
+        backgroundColor: '#f9f9f9',
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    bookTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    bookWriter: {
+        fontSize: 16,
+        color: 'gray',
     },
 });

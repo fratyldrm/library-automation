@@ -1,10 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, Text, View, Dimensions, TouchableOpacity, Animated } from 'react-native';
+import { Image, Text, View, Dimensions, TouchableOpacity, Animated, ImageBackground } from 'react-native';
 
 const { width, height } = Dimensions.get("window");
 
-function Librarys({ name, imageSource, color, backgroundColor, logo, pres }) {
+function Librarys({ name, imageSource, color, backgroundImageSource, logo, pres }) {
     const [scaleValue] = useState(new Animated.Value(1));
 
     const handlePressIn = () => {
@@ -33,45 +33,51 @@ function Librarys({ name, imageSource, color, backgroundColor, logo, pres }) {
                 style={{
                     flexDirection: "column",
                     alignItems: "center",
-                    backgroundColor: backgroundColor || "#f2f2f5",
                     borderRadius: 19,
                     height: height * 0.55,
                     width: width * 0.7,
                     marginVertical: 10,
-                    shadowColor: "black",
-                    shadowOffset: { width: 3, height: 7 },
-                    shadowOpacity: 0.27,
-                    shadowRadius: 4.65,
-                    elevation: 6,
+                    borderColor: "gray",
                     transform: [{ scale: scaleValue }],
                     marginRight: 16,
                     marginLeft: 16,
-                    justifyContent: 'center'
+                    overflow: 'hidden', // Ensures that children are clipped to the border radius
+                    borderWidth: 0.3,
                 }}
             >
-                <Image
+                <ImageBackground
+                    source={backgroundImageSource}
                     style={{
-                        height: height * 0.30,
-                        width: height * 0.40,
-                        borderRadius: 7,
-                        marginBottom: 20,
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center'
                     }}
-                    source={imageSource}
-                />
-                <Text
-                    style={{
-                        color: color || '#333',
-                        fontSize: 26,
-                        fontWeight: "700",
-                        textAlign: "center",
-                        marginBottom: 40,
-                    }}
+                    imageStyle={{ borderRadius: 19 }} // Applies border radius to the background image
                 >
-                    {name}
-                </Text>
-                <View style={{ marginTop: 10 }}>
-                    {logo}
-                </View>
+                    <Image
+                        style={{
+                            height: height * 0.30,
+                            width: height * 0.40,
+                            borderRadius: 7,
+                            marginBottom: 20,
+                        }}
+                        source={imageSource}
+                    />
+                    <Text
+                        style={{
+                            color: color || '#333',
+                            fontSize: 26,
+                            fontWeight: "700",
+                            textAlign: "center",
+                            marginBottom: 40,
+                        }}
+                    >
+                        {name}
+                    </Text>
+                    <View style={{ marginTop: 10 }}>
+                        {logo}
+                    </View>
+                </ImageBackground>
             </Animated.View>
         </TouchableOpacity>
     );

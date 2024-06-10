@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Text, View, Dimensions, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons, Entypo, AntDesign, Feather, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -10,55 +10,50 @@ function MyLibrary() {
     const navigation = useNavigation();
 
     return (
-
         <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.titleText}>KÜTÜPHANEM</Text>
-
             <ScrollView
                 horizontal
                 contentContainerStyle={styles.libraryContainer}
                 showsHorizontalScrollIndicator={false}
             >
-
                 <Librarys
                     pres={() => navigation.navigate("Okuma Listem")}
                     name="Okuma Listem"
                     imageSource={require('../../../assets/readList333.png')}
-                    backgroundColor={"#e6e6fa"}
+                    backgroundImageSource={require('../../../assets/background.png')}
                     logo={<Feather name="list" size={27} color="black" />}
                 />
                 <Librarys
                     pres={() => navigation.navigate("Kitaplarım")}
                     name="Kitaplarım"
                     imageSource={require('../../../assets/booksicon22.png')}
-                    backgroundColor={"#f0f8ff"}
+                    backgroundImageSource={require('../../../assets/background.png')}
                     logo={<FontAwesome5 name="book-open" size={24} color="black" />}
                 />
-
                 <Librarys
                     pres={() => navigation.navigate("Beğendiğim Yazarlar")}
                     name="Beğendiğim Yazarlar"
                     imageSource={require('../../../assets/charles.png')}
-                    backgroundColor={"#f5f5dc"}
+                    backgroundImageSource={require('../../../assets/background.png')}
                     logo={<Ionicons name="person-outline" size={24} color="black" />}
                 />
                 <Librarys
                     pres={() => navigation.navigate("Beğendiğim Kitaplar")}
                     name="Beğendiğim Kitaplar"
                     imageSource={require('../../../assets/begendigim.png')}
-                    backgroundColor={"#fff0f5"}
+                    backgroundImageSource={require('../../../assets/background.png')}
                     logo={<Entypo name="heart-outlined" size={27} color="black" />}
                 />
                 <Librarys
                     pres={() => navigation.navigate("İndirdiklerim")}
                     name="İndirdiklerim"
                     imageSource={require('../../../assets/booksicon22.png')}
-                    backgroundColor={"#faebd7"}
+                    backgroundImageSource={require('../../../assets/background.png')}
                     logo={<AntDesign name="clouddownloado" size={27} color="black" />}
                 />
             </ScrollView>
         </ScrollView>
-
     );
 }
 
@@ -70,7 +65,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     titleText: {
-        color: '#facc65', // Sarı tonu
+        color: '#4184bf', // Sarı tonu
         fontSize: 35,
         fontWeight: 'bold',
         textShadowColor: '#000', // Siyah gölge
